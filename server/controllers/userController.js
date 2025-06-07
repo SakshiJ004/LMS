@@ -90,7 +90,7 @@ export const updateUserCourseProgress = async (req, res) => {
         const progressData = await CourseProgress.findOne({ userId, courseId })
 
         if (progressData) {
-            if (progressData.lectureCompleted.includes(lectureid)) {
+            if (progressData.lectureCompleted.includes(lectureId)) {
                 return res.json({ success: true, message: 'Lecture Already Completed' })
             }
             progressData.lectureCompleted.push(lectureId)

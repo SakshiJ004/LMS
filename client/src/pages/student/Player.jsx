@@ -77,7 +77,9 @@ const Player = () => {
 
                     <div className='flex items-center gap-2 py-3 mt-10'>
                         <h1 className='text-xl font-bold'>Rate this Course :</h1>
-                        <Rating initialRating= {0}/>
+                        {/* <Rating initialRating={0} /> */}
+                        <Rating initialRating={0} />
+
                     </div>
                 </div>
 
@@ -91,8 +93,10 @@ const Player = () => {
                                 <button className='text-blue-600'>{false ? 'completed' : 'Mark Completed'}</button>
                             </div>
                         </div>
-                    ) :
-                        <img src={courseData ? courseData.courseThumbnail : ''} alt="" />}
+                    ) :(
+                        // <img src={courseData ? courseData.courseThumbnail : ''} alt="" />}
+                        courseData ? <img src={courseData.courseThumbnail} alt="Course Thumbnail" /> : null
+                    )}
                 </div>
             </div>
 

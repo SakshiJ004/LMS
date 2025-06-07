@@ -1,6 +1,6 @@
 import {clerkClient} from '@clerk/express'
 import Course from '../models/Course.js'
-import { v2 as clodinary } from 'cloudinary'
+import { v2 as cloudinary } from 'cloudinary'
 import { Purchase } from '../models/Purchase.js'
 
 
@@ -32,10 +32,10 @@ export const addCourse = async (req, res) => {
         if(!imageFile) {
             return res.json({ success: false, message: 'Thumbnail Not Attached'})
         }
-        const parseCourseData = await JSON.parse(courseData)
-        parseCourseData.educator = educatorId
-        const newCourse = await Course.create(parseCourseData)
-        const imageUpload = await clodinary.uploader.upload(imageFile.path)
+        const parsedCourseData = await JSON.parse(courseData)
+        parsedCourseData.educator = educatorId
+        const newCourse = await Course.create(parsedCourseData)
+        const imageUpload = await cloudinary.uploader.upload(imageFile.path)
         newCourse.courseThumbnail = imageUpload.secure_url
         await newCourse.save()
 
@@ -105,7 +105,8 @@ export const getEnrolledStudentsData = async (req, res) => {
         const courseIds = courses.map(course => course._id);
 
         const purchases = await Purchase.find({
-            courseId: 'completed'
+            courseId: { $in: courseIds},
+            status: 'completed'
         }).populate('userId', 'name imageUrl').populate('courseId', 'courseTitle')
 
         const enrolledStudents = purchases.map(purchase => ({
