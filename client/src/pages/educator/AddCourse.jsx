@@ -1,10 +1,14 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import uniqid from 'uniqid';
 import Quill from 'quill';
 import 'quill/dist/quill.snow.css';
 import { assets } from '../../assets/assets';
+import { AppContext } from '../../context/AppContext';
+import { toast } from 'react-toastify';
+import axios from 'axios';
 
 const AddCourse = () => {
+    const { backendUrl, getToken } = useContext(AppContext)
     const quillRef = useRef(null);
     const editorRef = useRef(null);
 
@@ -48,14 +52,23 @@ const AddCourse = () => {
 
     const handleAddLecture = () => {
         if (!lectureDetails.lectureTitle || !lectureDetails.lectureDuration || !lectureDetails.lectureUrl) return;
-        const updatedChapters = chapters.map((chapter) =>
-            chapter.chapterId === currentChapterId
-                ? {
+
+        const updatedChapters = chapters.map((chapter) => {
+            if (chapter.chapterId === currentChapterId) {
+                const lectureOrder = chapter.chapterContent.length + 1;
+                const newLecture = {
+                    ...lectureDetails,
+                    lectureOrder: lectureOrder,
+                    lectureId: uniqid(),  // generate unique ID
+                };
+                return {
                     ...chapter,
-                    chapterContent: [...chapter.chapterContent, { ...lectureDetails }],
-                }
-                : chapter
-        );
+                    chapterContent: [...chapter.chapterContent, newLecture],
+                };
+            }
+            return chapter;
+        });
+
         setChapters(updatedChapters);
         setLectureDetails({
             lectureTitle: '',
@@ -67,7 +80,38 @@ const AddCourse = () => {
     };
 
     const handleSubmit = async (e) => {
-        e.preventDefault()
+        try {
+            e.preventDefault()
+            if (!image) {
+                toast.error('Thumbnail Not Selected')
+            }
+            const courseData = {
+                courseTitle,
+                courseDescription: quillRef.current.root.innerHTML, coursePrice: Number(coursePrice), discount: Number(discount), courseContent: chapters,
+            }
+
+            const formData = new FormData()
+            formData.append('courseData', JSON.stringify(courseData))
+            formData.append('image', image)
+
+            const token = await getToken()
+            const { data } = await axios.post(backendUrl + '/api/educator/add-course', formData, { headers: { Authorization: `Bearer ${token}` } })
+
+            if (data.success) {
+                toast.success(data.message)
+                setCourseTitle('')
+                setCoursePrice(0)
+                setDiscount(0)
+                setImage(null)
+                setChapters([])
+                quillRef.current.root.innerHTML = ""
+            } else {
+                toast.error(data.message)
+            }
+        } catch (error) {
+            toast.error(error.message)
+        }
+
     };
 
     const handleLecture = (action, chapterId, lectureIndex) => {

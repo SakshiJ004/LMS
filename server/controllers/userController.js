@@ -139,11 +139,22 @@ export const addUserRating = async (req, res) => {
         }
         const user = await User.findById(userId)
 
-        if(!user || user.enrolledCourses.includes(courseId)) {
+        if (!user) {
+            return res.json({ success: false, message: 'User not found' });
+        }
+
+        // if(!user || user.enrolledCourses.includes(courseId)) {
+        //     return res.json({ success: false, message: 'User has not purchased this course' });
+        // }
+        const isEnrolled = user.enrolledCourses.some(
+            (id) => id.toString() === courseId
+        );
+
+        if (!isEnrolled) {
             return res.json({ success: false, message: 'User has not purchased this course' });
         }
 
-        const existingRatingIndex = course.courseRatings.findIndex(r => r.userId === userId)
+        const existingRatingIndex = course.courseRatings.findIndex(r => r.userId.toString() === userId)
 
         if(existingRatingIndex > -1) {
             course.courseRatings[existingRatingIndex].rating = rating;
